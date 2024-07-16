@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Function to log messages with a timestamp
+# Function to log messages with a timestamp, log level, and line number
 log_message() {
-  echo "$(date +'%Y-%m-%d %H:%M:%S') - $1" | tee -a "$log_file"
+  local log_level=$1
+  local log_message=$2
+  local caller_info=$(caller 0)
+  echo "$(date +'%Y-%m-%d %H:%M:%S') - $log_level - ${caller_info} - $log_message" | tee -a "$log_file"
 }
 
 # Define the build and log directories
@@ -15,14 +18,14 @@ log_file="$log_dir/build_script_$timestamp.log"
 if [ -d "$build_dir" ]; then
   # If build directory exists, check if the log directory exists
   if [ -d "$log_dir" ]; then
-    log_message "Build and log directories already exist."
+    log_message "INFO" "Build and log directories already exist."
   else
     # Try to create the log directory
     mkdir -p "$log_dir"
     if [ $? -eq 0 ]; then
-      log_message "Log directory created successfully."
+      log_message "INFO" "Log directory created successfully."
     else
-      echo "Error: Failed to create log directory." >&2  # Direct output to stderr as logging might not be available
+      log_message "ERROR" "Failed to create log directory."
       exit 1
     fi
   fi
@@ -33,25 +36,22 @@ else
     # Try to create the log directory after creating the build directory
     mkdir -p "$log_dir"
     if [ $? -eq 0 ]; then
-      log_message "Log directory created successfully."
+      log_message "INFO" "Log directory created successfully."
     else
-      echo "Error: Failed to create log directory." >&2  # Direct output to stderr as logging might not be available
+      log_message "ERROR" "Failed to create log directory."
       exit 1
     fi
-    log_message "Build directory created successfully."
+    log_message "INFO" "Build directory created successfully."
   else
-    echo "Error: Failed to create build directory." >&2  # Direct output to stderr as logging might not be available
+    log_message "ERROR" "Failed to create build directory."
     exit 1
   fi
 fi
 
-# Further processing can be added here
-
-
 # Check if at least one argument is provided
 if [ "$#" -lt 1 ]; then
-  log_message "Incorrect number of arguments"
-  log_message "Usage: $0 <source_directory> or $0 <file1.c> <file2.h> ..."
+  log_message "ERROR" "Incorrect number of arguments"
+  log_message "ERROR" "Usage: $0 <source_directory> or $0 <file1.c> <file2.h> ..."
   exit 1
 fi
 
@@ -63,20 +63,20 @@ if [ -d "$1" ]; then
   H_FILES=$(find "$SOURCE_DIR" -maxdepth 1 -name '*.h')
 
   if [ -z "$C_FILES" ]; then
-    log_message "No .c files found in the directory"
+    log_message "ERROR" "No .c files found in the directory"
     exit 1
   fi
 
   if [ -z "$H_FILES" ]; then
-    log_message "No .h files found in the directory"
+    log_message "ERROR" "No .h files found in the directory"
     exit 1
   fi
 
-  log_message "Source directory: $SOURCE_DIR"
-  log_message ".c files found:"
-  log_message "$C_FILES"
-  log_message ".h files found:"
-  log_message "$H_FILES"
+  log_message "INFO" "Source directory: $SOURCE_DIR"
+  log_message "INFO" ".c files found:"
+  log_message "INFO" "$C_FILES"
+  log_message "INFO" ".h files found:"
+  log_message "INFO" "$H_FILES"
 else
   # Treat all arguments as individual files
   C_FILES=()
@@ -88,27 +88,27 @@ else
     elif [[ "$FILE" == *.h ]]; then
       H_FILES+=("$FILE")
     else
-      log_message "Ignoring unrecognized file: $FILE"
+      log_message "WARNING" "Ignoring unrecognized file: $FILE"
     fi
   done
 
   if [ ${#C_FILES[@]} -eq 0 ]; then
-    log_message "No .c files provided"
+    log_message "ERROR" "No .c files provided"
     exit 1
   fi
 
   if [ ${#H_FILES[@]} -eq 0 ]; then
-    log_message "No .h files provided"
+    log_message "ERROR" "No .h files provided"
     exit 1
   fi
 
-  log_message ".c files found:"
+  log_message "INFO" ".c files found:"
   for FILE in "${C_FILES[@]}"; do
-    log_message "$FILE"
+    log_message "INFO" "$FILE"
   done
 
-  log_message ".h files found:"
+  log_message "INFO" ".h files found:"
   for FILE in "${H_FILES[@]}"; do
-    log_message "$FILE"
+    log_message "INFO" "$FILE"
   done
 fi
