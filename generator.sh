@@ -10,6 +10,7 @@ log_message() {
 
 # Define the build and log directories
 build_dir="build"
+src_dir="$build_dir/src"
 log_dir="$build_dir/log"
 timestamp=$(date +'%Y-%m-%d_%H-%M-%S')
 log_file="$log_dir/build_script_$timestamp.log"
@@ -149,3 +150,32 @@ for FILE in "${C_FILES[@]}" "${H_FILES[@]}"; do
     exit 1
   fi
 done
+
+
+# Check if Python 3 is installed
+if ! command -v python3 &>/dev/null; then
+  log_message "Python 3 is not installed"
+  exit 1
+fi
+
+log_message "INFO" "Python 3 is installed"
+
+CANTOOLS_MODULE_NAME="cantools"
+
+# Check if the 'cantools' module is installed
+if ! python3 -c "import $CANTOOLS_MODULE_NAME" &>/dev/null; then
+  log_message "ERROR" "$CANTOOLS_MODULE_NAME is not installed. Please install $CANTOOLS_MODULE_NAME to proceed"
+  exit 1
+else
+  log_message "INFO" "$CANTOOLS_MODULE_NAME is installed"
+fi
+
+CTYPESGEN_MODULE_NAME="ctypesgen"
+
+# Check if ctypesgen is installed
+if ! command -v "$CTYPESGEN_MODULE_NAME" &> /dev/null; then
+  log_message "ERROR" "$CTYPESGEN_MODULE_NAME is not installed. Please install $CTYPESGEN_MODULE_NAME to proceed."
+  exit 1
+else
+  log_message "INFO" "$CTYPESGEN_MODULE_NAME is installed."
+fi
