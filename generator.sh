@@ -112,3 +112,40 @@ else
     log_message "INFO" "$FILE"
   done
 fi
+
+# Ensure the src directory exists
+if [ -d "$src_dir" ]; then
+  log_message "INFO" "Source directory already exists. Clearing contents."
+  rm -rf "$src_dir"/*
+else
+  # Try to create the src directory
+  mkdir -p "$src_dir"
+  if [ $? -eq 0 ]; then
+    log_message "INFO" "Source directory created successfully."
+  else
+    log_message "ERROR" "Failed to create source directory."
+    exit 1
+  fi
+fi
+
+# Copy .c and .h files to the src directory
+for FILE in "${C_FILES[@]}" "${H_FILES[@]}"; do
+  cp "$FILE" "$src_dir/"
+  if [ $? -eq 0 ]; then
+    log_message "INFO" "Copied $FILE to $src_dir"
+  else
+    log_message "ERROR" "Failed to copy $FILE to $src_dir"
+    exit 1
+  fi
+done
+
+# Verify that the files were copied successfully
+for FILE in "${C_FILES[@]}" "${H_FILES[@]}"; do
+  BASENAME=$(basename "$FILE")
+  if [ -e "$src_dir/$BASENAME" ]; then
+    log_message "INFO" "$BASENAME copied successfully to $src_dir"
+  else
+    log_message "ERROR" "Failed to verify $BASENAME in $src_dir"
+    exit 1
+  fi
+done
