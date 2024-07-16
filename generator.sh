@@ -9,7 +9,9 @@ log_message() {
 }
 
 # Define the build and log directories
-build_dir="build"
+
+base_dir=$(dirname "$0")
+build_dir="$base_dir/build"
 src_dir="$build_dir/src"
 log_dir="$build_dir/log"
 timestamp=$(date +'%Y-%m-%d_%H-%M-%S')
@@ -179,3 +181,32 @@ if ! command -v "$CTYPESGEN_MODULE_NAME" &> /dev/null; then
 else
   log_message "INFO" "$CTYPESGEN_MODULE_NAME is installed."
 fi
+
+# Function to check directory and permissions
+check_dir_and_permissions() {
+  local dir=$1
+  if [ ! -d "$dir" ]; then
+    mkdir -p "$dir"
+    log_message "INFO" "$dir directory created."
+  else
+    log_message "INFO" "$dir already exists."
+  fi
+
+  if [ ! -w "$dir" ]; then
+    log_message "ERROR" "You do not have permission to write to $dir."
+    exit 1
+  fi
+}
+
+bindings_dir="${base_dir}/build/bindings"
+python_dir="${base_dir}/build/python"
+wrap_dir="${base_dir}/build/wrap"
+obj_dir="${base_dir}/build/obj"
+lib_dir="${base_dir}/build/lib"
+
+# Check src, bindings, python, wrap, obj, and lib directories and permissions
+check_dir_and_permissions "$bindings_dir"
+check_dir_and_permissions "$python_dir"
+check_dir_and_permissions "$wrap_dir"
+check_dir_and_permissions "$obj_dir"
+check_dir_and_permissions "$lib_dir"
